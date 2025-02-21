@@ -1,5 +1,6 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export let createUser = async (req, res) => {
   let { name, email, password, role } = req.body;
@@ -34,6 +35,47 @@ export let createUser = async (req, res) => {
   }
 };
 
+export let loginUser = async (req, res) => {
+  let { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: "Fill the required fields" });
+  }
+  try {
+    let user = await User.find({ email: email });
+    console.log("User", user);
+    if (user.length == 0) {
+      return res.status(404).json({ message: "User Not found" });
+    }
+    let isPassword = await bcrypt.compare(password, user[0].password);
+    console.log(isPassword);
+    if (!isPassword) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    let sessionToken = jwt.sign(
+      {
+        user_id: user[0].id,
+        role: user[0].role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+    return res.status(200).json({
+      message: "Login Successful",
+      sessionToken: sessionToken,
+      user: user[0],
+    });
+  } catch (error) {
+    console.log("Error while login", error);
+    return res.status(500).json({ message: "Error while login", error: error });
+  }
+};
+
+export let updateUser = async (req, res) => {
+  let { user_id, name, email } = req.body;
+  if (!user_id) {
+    return res.status(400).json({ message: "UserId Required" });
+  }
+};
 function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
