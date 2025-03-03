@@ -71,10 +71,61 @@ export let loginUser = async (req, res) => {
 };
 
 export let updateUser = async (req, res) => {
-  let { user_id, name, email } = req.body;
-  if (!user_id) {
-    return res.status(400).json({ message: "UserId Required" });
+  try {
+    let { user_id, name, email } = req.body;
+    if (!user_id) {
+      return res.status(400).json({ message: "UserId Required" });
+    }
+    let updatedUser = {};
+    if (name) {
+      updatedUser.name = name;
+    }
+    if (email) {
+      let isValid = isValidEmail(email);
+      if (!isValid) {
+        return res.status(400).json({ message: "Invalid email" });
+      }
+      updatedUser.email = email;
+    }
+    let updateUser = await User.findByIdAndUpdate(user_id, updatedUser, {
+      new: true,
+    });
+    if (!updateUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res
+      .status(200)
+      .json({ message: "User Updated Successfully", user: updateUser });
+  } catch (error) {
+    console.log("Error while updating user", error);
+    return res
+      .status(500)
+      .json({ message: "Error while updating user", error: error });
   }
+};
+
+export let getMe = async (req, res) => {
+  let user_id = req.user.user_id;
+  let user = await User.findById(user_id);
+  if (!user) {
+    return res.status(404).json({ message: "User Not Found" });
+  }
+  return res.status(200).json({ message: "This is Your Profile", user: user });
+};
+
+export let deleteUser = async (req, res) => {
+  let { user_id } = req.body;
+  let user = await User.findById(user_id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  if (req.user.role !== "Admin") {
+    return res.status(403).json({ message: "Unauthorized" });
+  }
+  let deletedUser = await User.findByIdAndDelete(user_id);
+  return res
+    .status(200)
+    .json({ message: "User Deleted Successfully", deletedUser: deletedUser });
 };
 function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

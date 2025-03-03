@@ -5,7 +5,7 @@ dotenv.config();
 
 export let authenticationToken = async (req, res, next) => {
   try {
-    let token = req.headers("Authorization");
+    let token = req.header("Authorization");
     if (!token) {
       return res.status(400).json({ message: "Token required" });
     }
