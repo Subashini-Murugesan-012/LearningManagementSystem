@@ -127,6 +127,7 @@ export let deleteUser = async (req, res) => {
     .status(200)
     .json({ message: "User Deleted Successfully", deletedUser: deletedUser });
 };
+
 function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
