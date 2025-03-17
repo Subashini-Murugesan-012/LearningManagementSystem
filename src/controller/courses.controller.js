@@ -132,4 +132,22 @@ export let getCourse = async (req, res) => {
   }
 };
 
-export let getCourseList = async (req, res) => {};
+export let getCourseList = async (req, res) => {
+  try {
+    let filter = {};
+    if (req.body.course_name) filter.course_name = req.body.course_name;
+    if (req.body.description) filter.description = req.body.description;
+    if (req.body.category) filter.category = req.body.category;
+    if (req.body.instructor_id) filter.instructor_id = req.body.instructor_id;
+    if (req.body.duration) filter.duration = req.body.duration;
+    if (req.body.language) filter.language = req.body.language;
+    if (req.body.level) filter.level = req.body.level;
+    let courses = await Course.find(filter);
+    return res.status(200).json({ message: "Courses List", courses: courses });
+  } catch (error) {
+    console.log("Error while getting the Courses", error);
+    return res
+      .status(500)
+      .json({ message: "Error while getting the courses", error: error });
+  }
+};
